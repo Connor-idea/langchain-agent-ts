@@ -53,6 +53,13 @@ import {
   formatQualityReport,
   type JDQualityScore,
 } from "./evaluator-integration.js";
+import {
+  identifyJobType,
+  getMarketBenchmark,
+  formatJobInfo,
+  type JobInfo,
+  type JobCategory,
+} from "./job-categories.js";
 
 // ========== 类型 ==========
 
@@ -76,9 +83,15 @@ export interface PipelineInput {
     skills?: string;
     competitors?: string;
   };
+  /** 岗位信息（可选，自动识别） */
+  jobInfo?: JobInfo;
 }
 
 export interface PipelineResult {
+  /** 岗位信息 */
+  jobInfo: JobInfo;
+  /** 市场基准 */
+  marketBenchmark?: any;
   /** 上下文评估 */
   evaluation: ContextEvaluation;
   /** 增强评估（含市场+候选人维度） */
@@ -141,13 +154,19 @@ export class HRPipeline {
 
     console.log(formatEvaluation(evaluation));
 
-    // 识别岗位和城市
-    const role = this.extractRole(input.rawDescription);
-    const city = input.city || this.extractCity(input.rawDescription) || "上海";
-    const level =
-      input.level || this.extractLevel(input.rawDescription) || "中级";
+    // 识别岗位类型（通用）
+    const jobInfo = input.jobInfo || identifyJobType(input.rawDescription);
+    const role = jobInfo.roleName;
+    const city = input.city || "上海";
+    const level = input.level || jobInfo.level || "中级";
 
-    console.log(`\n🎯 识别: ${role} @ ${city} (${level})`);
+    console.log(`\n🎯 ${formatJobInfo(jobInfo)}`);
+    console.log(`📍 ${city} | ${level}`);
+
+    // 获取市场基准
+    const marketBenchmark = getMarketBenchmark(jobInfo.category, level, city);
+    console.log(`💰 市场薪资参考: ${marketBenchmark.salaryRange.min}-${marketBenchmark.salaryRange.max}K (中位数 ${marketBenchmark.salaryRange.median}K)`);
+    console.log(`👥 人才供给: ${marketBenchmark.supplyLevel}`);
 
     // ========== Step 2: 市场数据采集 ==========
     console.log("\n📊 Step 2: 市场数据采集...");
@@ -291,6 +310,8 @@ export class HRPipeline {
     const estimatedCost = this.totalTokens * 0.000002; // 粗略估算
 
     return {
+      jobInfo,
+      marketBenchmark,
       evaluation,
       enhancedEvaluation,
       market,
@@ -448,8 +469,34 @@ export function formatPipelineResult(result: PipelineResult): string {
 
   lines.push("# HR Agent Pipeline 执行结果\n");
 
+  // 岗位信息
+  if (result.jobInfo) {
+    const categoryNames: Record<string, string> = {
+      tech: "技术研发", product: "产品", design: "设计", operation: "运营",
+      marketing: "市场/营销", sales: "销售", finance: "财务", hr: "人力资源",
+      admin: "行政", service: "服务/客服", food: "餐饮", retail: "零售",
+      education: "教育", medical: "医疗", manufacturing: "制造", logistics: "物流",
+      legal: "法务", other: "其他",
+    };
+    lines.push("## 0. 岗位识别");
+    lines.push(`- 岗位: ${result.jobInfo.roleName}`);
+    lines.push(`- 类别: ${categoryNames[result.jobInfo.category] || result.jobInfo.category}`);
+    if (result.jobInfo.industry) lines.push(`- 行业: ${result.jobInfo.industry}`);
+    if (result.jobInfo.isManagement) lines.push(`- 管理岗: 是`);
+    lines.push("");
+  }
+
+  // 市场基准
+  if (result.marketBenchmark) {
+    lines.push("## 1. 市场基准");
+    lines.push(`- 薪资范围: ${result.marketBenchmark.salaryRange.min}-${result.marketBenchmark.salaryRange.max}K (中位数 ${result.marketBenchmark.salaryRange.median}K)`);
+    lines.push(`- 人才供给: ${result.marketBenchmark.supplyLevel}`);
+    lines.push(`- 常见福利: ${result.marketBenchmark.commonBenefits.join("、")}`);
+    lines.push("");
+  }
+
   // 上下文评估
-  lines.push("## 1. 上下文评估");
+  lines.push("## 2. 上下文评估");
   lines.push(
     `- 完整度: ${Math.round(result.evaluation.completeness * 100)}% (${result.evaluation.grade})`
   );
@@ -463,7 +510,7 @@ export function formatPipelineResult(result: PipelineResult): string {
 
   // 市场情报
   if (result.market) {
-    lines.push("## 2. 市场情报");
+    lines.push("## 3. 市场情报");
     lines.push(`- ${result.market.summary}`);
     if (result.market.salary) {
       lines.push(
@@ -480,18 +527,18 @@ export function formatPipelineResult(result: PipelineResult): string {
 
   // 候选人画像
   if (result.personas && result.personas.length > 0) {
-    lines.push("## 3. 候选人画像");
+    lines.push("## 4. 候选人画像");
     for (const p of result.personas) {
-      lines.push(`- **${p.name}** (${p.type}): ${p.background.currentRole}，${p.background.experience}`);
-      lines.push(`  核心技能: ${p.skills.core.join("、")}`);
-      lines.push(`  主要动机: ${p.motivation.primary}`);
+      lines.push(`- **${p.name}** (${p.type}): ${p.background?.currentRole || "未知"}，${p.background?.experience || "未知"}`);
+      lines.push(`  核心技能: ${p.skills?.core?.join("、") || "待补充"}`);
+      lines.push(`  主要动机: ${p.motivation?.primary || "待补充"}`);
     }
     lines.push("");
   }
 
   // 招聘洞察
   if (result.hiringInsights) {
-    lines.push("## 4. 招聘洞察");
+    lines.push("## 5. 招聘洞察");
     lines.push(`- 目标画像: ${result.hiringInsights.targetPersona}`);
     lines.push(`- 薪资策略: ${result.hiringInsights.salaryStrategy}`);
     lines.push(`- 触达渠道: ${result.hiringInsights.channelStrategy}`);
@@ -502,14 +549,14 @@ export function formatPipelineResult(result: PipelineResult): string {
   if (result.enhancedEvaluation) {
     const basePct = Math.round(result.evaluation.completeness * 100);
     const enhancedPct = Math.round(result.enhancedEvaluation.completeness * 100);
-    lines.push("## 5. 增强评估");
+    lines.push("## 6. 增强评估");
     lines.push(`- 完整度提升: ${basePct}% → ${enhancedPct}%`);
     lines.push("");
   }
 
   // 访谈问题
   if (result.interviewQuestions && result.interviewQuestions.length > 0) {
-    lines.push("## 6. 访谈问题");
+    lines.push("## 7. 访谈问题");
     for (const q of result.interviewQuestions.slice(0, 5)) {
       lines.push(`- [${q.priority}] ${q.question.substring(0, 60)}...`);
     }
