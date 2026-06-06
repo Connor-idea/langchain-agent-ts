@@ -1,0 +1,194 @@
+{
+  "timestamp": "2026-06-06T20:09:15.518Z",
+  "dataset": "hr-agent-quality-v1",
+  "summary": {
+    "avgScore": 80,
+    "passRate": 50,
+    "passCount": 5,
+    "total": 10
+  },
+  "results": [
+    {
+      "scenario": "基础技术岗位",
+      "difficulty": "easy",
+      "score": 73,
+      "passed": false,
+      "suggestions": [
+        "JD 缺少以下必要字段: compensation",
+        "JD 缺少关键词: React, Vue",
+        "LLM 评估失败，请检查 API 配置",
+        "JD 内容过短，建议补充职责和要求细节",
+        "建议明确薪资范围以提高吸引力"
+      ],
+      "pipeline": {
+        "completeness": 4,
+        "enhancedCompleteness": 31,
+        "marketData": true,
+        "personas": 2
+      }
+    },
+    {
+      "scenario": "管理岗位",
+      "difficulty": "medium",
+      "score": 71,
+      "passed": false,
+      "suggestions": [
+        "JD 缺少以下必要字段: teamContext",
+        "JD 缺少关键词: 团队管理, 技术选型",
+        "LLM 评估失败，请检查 API 配置",
+        "JD 内容过短，建议补充职责和要求细节",
+        "建议明确薪资范围以提高吸引力"
+      ],
+      "pipeline": {
+        "completeness": 4,
+        "enhancedCompleteness": 17,
+        "marketData": true,
+        "personas": 2
+      }
+    },
+    {
+      "scenario": "非技术岗位",
+      "difficulty": "medium",
+      "score": 80,
+      "passed": false,
+      "suggestions": [
+        "JD 缺少关键词: 需求分析, 数据驱动",
+        "LLM 评估失败，请检查 API 配置",
+        "JD 内容过短，建议补充职责和要求细节",
+        "建议明确薪资范围以提高吸引力"
+      ],
+      "pipeline": {
+        "completeness": 4,
+        "enhancedCompleteness": 17,
+        "marketData": true,
+        "personas": 2
+      }
+    },
+    {
+      "scenario": "紧急招聘",
+      "difficulty": "easy",
+      "score": 81,
+      "passed": false,
+      "suggestions": [
+        "JD 缺少关键词: 紧急",
+        "LLM 评估失败，请检查 API 配置",
+        "JD 内容过短，建议补充职责和要求细节",
+        "建议明确薪资范围以提高吸引力"
+      ],
+      "pipeline": {
+        "completeness": 4,
+        "enhancedCompleteness": 17,
+        "marketData": true,
+        "personas": 2
+      }
+    },
+    {
+      "scenario": "前沿技术",
+      "difficulty": "hard",
+      "score": 77,
+      "passed": true,
+      "suggestions": [
+        "JD 缺少以下必要字段: compensation",
+        "JD 缺少关键词: LLM",
+        "LLM 评估失败，请检查 API 配置",
+        "JD 内容过短，建议补充职责和要求细节",
+        "建议明确薪资范围以提高吸引力"
+      ],
+      "pipeline": {
+        "completeness": 4,
+        "enhancedCompleteness": 17,
+        "marketData": true,
+        "personas": 2
+      }
+    },
+    {
+      "scenario": "非技术管理岗",
+      "difficulty": "medium",
+      "score": 83,
+      "passed": true,
+      "suggestions": [
+        "JD 缺少关键词: 财务分析",
+        "LLM 评估失败，请检查 API 配置",
+        "JD 内容过短，建议补充职责和要求细节",
+        "建议明确薪资范围以提高吸引力"
+      ],
+      "pipeline": {
+        "completeness": 4,
+        "enhancedCompleteness": 17,
+        "marketData": true,
+        "personas": 2
+      }
+    },
+    {
+      "scenario": "高管岗位",
+      "difficulty": "hard",
+      "score": 71,
+      "passed": false,
+      "suggestions": [
+        "JD 缺少以下必要字段: teamContext",
+        "JD 缺少关键词: 团队管理, 数据",
+        "LLM 评估失败，请检查 API 配置",
+        "JD 内容过短，建议补充职责和要求细节",
+        "建议明确薪资范围以提高吸引力"
+      ],
+      "pipeline": {
+        "completeness": 4,
+        "enhancedCompleteness": 17,
+        "marketData": true,
+        "personas": 2
+      }
+    },
+    {
+      "scenario": "基础设施岗",
+      "difficulty": "medium",
+      "score": 88,
+      "passed": true,
+      "suggestions": [
+        "LLM 评估失败，请检查 API 配置",
+        "JD 内容过短，建议补充职责和要求细节",
+        "建议明确薪资范围以提高吸引力"
+      ],
+      "pipeline": {
+        "completeness": 4,
+        "enhancedCompleteness": 17,
+        "marketData": true,
+        "personas": 2
+      }
+    },
+    {
+      "scenario": "数据岗位",
+      "difficulty": "easy",
+      "score": 88,
+      "passed": true,
+      "suggestions": [
+        "LLM 评估失败，请检查 API 配置",
+        "JD 内容过短，建议补充职责和要求细节",
+        "建议明确薪资范围以提高吸引力"
+      ],
+      "pipeline": {
+        "completeness": 4,
+        "enhancedCompleteness": 17,
+        "marketData": true,
+        "personas": 2
+      }
+    },
+    {
+      "scenario": "全栈岗位",
+      "difficulty": "medium",
+      "score": 83,
+      "passed": true,
+      "suggestions": [
+        "JD 缺少关键词: 前端",
+        "LLM 评估失败，请检查 API 配置",
+        "JD 内容过短，建议补充职责和要求细节",
+        "建议明确薪资范围以提高吸引力"
+      ],
+      "pipeline": {
+        "completeness": 4,
+        "enhancedCompleteness": 17,
+        "marketData": true,
+        "personas": 2
+      }
+    }
+  ]
+}

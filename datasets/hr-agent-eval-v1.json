@@ -1,0 +1,298 @@
+{
+  "dataset_name": "hr-agent-quality-v1",
+  "description": "HR Agent JD 生成质量评估数据集 - 10个真实招聘场景",
+  "version": "1.0.0",
+  "created_at": "2026-06-06",
+  "examples": [
+    {
+      "id": "scenario-01",
+      "input": {
+        "description": "招一个前端开发，做我们的公寓管理系统后台",
+        "city": "上海",
+        "level": "中级",
+        "department": {
+          "name": "研发部",
+          "mission": "支撑公寓管理SaaS系统的研发迭代",
+          "team": "3名后端 + 1名前端"
+        },
+        "business": {
+          "stage": "A轮",
+          "industry": "PropTech",
+          "product": "公寓管理SaaS"
+        }
+      },
+      "expected_output": {
+        "must_contain": ["前端", "React", "Vue", "职责", "要求"],
+        "must_not_contain": ["996", "加班是福报", "狼性文化"],
+        "quality_threshold": 65,
+        "structure_required": ["title", "responsibilities", "requirements", "compensation"]
+      },
+      "metadata": {
+        "scenario": "基础技术岗位",
+        "difficulty": "easy",
+        "tags": ["前端", "SaaS", "A轮"]
+      }
+    },
+    {
+      "id": "scenario-02",
+      "input": {
+        "description": "需要一个能带团队的技术负责人，5年以上经验，要有架构设计能力",
+        "city": "上海",
+        "level": "高级",
+        "department": {
+          "name": "技术部",
+          "mission": "负责公司核心技术平台建设",
+          "team": "8人团队"
+        },
+        "business": {
+          "stage": "B轮",
+          "industry": "企业服务",
+          "product": "智能客服系统"
+        }
+      },
+      "expected_output": {
+        "must_contain": ["技术负责人", "架构", "团队管理", "技术选型"],
+        "must_not_contain": ["执行者", "螺丝钉"],
+        "quality_threshold": 70,
+        "structure_required": ["title", "responsibilities", "requirements", "teamContext"]
+      },
+      "metadata": {
+        "scenario": "管理岗位",
+        "difficulty": "medium",
+        "tags": ["技术负责人", "架构师", "团队管理"]
+      }
+    },
+    {
+      "id": "scenario-03",
+      "input": {
+        "description": "招一个产品经理，要有B端SaaS经验，能独立负责产品线",
+        "city": "北京",
+        "level": "中级",
+        "department": {
+          "name": "产品部",
+          "mission": "打造行业领先的B端产品",
+          "team": "2名产品经理 + 1名产品助理"
+        },
+        "business": {
+          "stage": "A轮",
+          "industry": "企业服务",
+          "product": "HR SaaS"
+        }
+      },
+      "expected_output": {
+        "must_contain": ["产品经理", "B端", "SaaS", "需求分析", "数据驱动"],
+        "must_not_contain": ["996", "大小周"],
+        "quality_threshold": 65,
+        "structure_required": ["title", "responsibilities", "requirements"]
+      },
+      "metadata": {
+        "scenario": "非技术岗位",
+        "difficulty": "medium",
+        "tags": ["产品经理", "B端", "SaaS"]
+      }
+    },
+    {
+      "id": "scenario-04",
+      "input": {
+        "description": "急招一个测试工程师，下周到岗，能做自动化测试",
+        "city": "深圳",
+        "level": "初级",
+        "department": {
+          "name": "质量部",
+          "mission": "保障产品质量",
+          "team": "2名测试"
+        },
+        "business": {
+          "stage": "成长期",
+          "industry": "电商",
+          "product": "跨境电商平台"
+        }
+      },
+      "expected_output": {
+        "must_contain": ["测试", "自动化", "紧急"],
+        "must_not_contain": ["996"],
+        "quality_threshold": 60,
+        "structure_required": ["title", "responsibilities", "requirements"]
+      },
+      "metadata": {
+        "scenario": "紧急招聘",
+        "difficulty": "easy",
+        "tags": ["测试", "自动化", "紧急"]
+      }
+    },
+    {
+      "id": "scenario-05",
+      "input": {
+        "description": "招一个AI工程师，做大模型应用，要有RAG和Agent经验",
+        "city": "杭州",
+        "level": "高级",
+        "department": {
+          "name": "AI Lab",
+          "mission": "探索AI技术在业务中的应用",
+          "team": "3名算法 + 2名工程"
+        },
+        "business": {
+          "stage": "B轮",
+          "industry": "AI",
+          "product": "智能助手"
+        }
+      },
+      "expected_output": {
+        "must_contain": ["AI", "大模型", "RAG", "Agent", "LLM"],
+        "must_not_contain": [],
+        "quality_threshold": 70,
+        "structure_required": ["title", "responsibilities", "requirements", "compensation"]
+      },
+      "metadata": {
+        "scenario": "前沿技术",
+        "difficulty": "hard",
+        "tags": ["AI", "大模型", "RAG", "Agent"]
+      }
+    },
+    {
+      "id": "scenario-06",
+      "input": {
+        "description": "招一个财务经理，要有CPA证书，做过融资和上市准备",
+        "city": "上海",
+        "level": "高级",
+        "department": {
+          "name": "财务部",
+          "mission": "支撑公司财务健康和资本运作",
+          "team": "2名会计 + 1名出纳"
+        },
+        "business": {
+          "stage": "C轮",
+          "industry": "消费品",
+          "product": "新消费品牌"
+        }
+      },
+      "expected_output": {
+        "must_contain": ["财务", "CPA", "融资", "财务分析"],
+        "must_not_contain": [],
+        "quality_threshold": 65,
+        "structure_required": ["title", "responsibilities", "requirements"]
+      },
+      "metadata": {
+        "scenario": "非技术管理岗",
+        "difficulty": "medium",
+        "tags": ["财务", "CPA", "融资"]
+      }
+    },
+    {
+      "id": "scenario-07",
+      "input": {
+        "description": "招一个运营总监，要有用户增长经验，带过10人以上团队",
+        "city": "北京",
+        "level": "专家/总监",
+        "department": {
+          "name": "运营部",
+          "mission": "驱动用户增长和活跃",
+          "team": "15人团队"
+        },
+        "business": {
+          "stage": "D轮",
+          "industry": "社交",
+          "product": "社交平台"
+        }
+      },
+      "expected_output": {
+        "must_contain": ["运营", "增长", "团队管理", "数据"],
+        "must_not_contain": [],
+        "quality_threshold": 70,
+        "structure_required": ["title", "responsibilities", "requirements", "teamContext"]
+      },
+      "metadata": {
+        "scenario": "高管岗位",
+        "difficulty": "hard",
+        "tags": ["运营总监", "增长", "团队管理"]
+      }
+    },
+    {
+      "id": "scenario-08",
+      "input": {
+        "description": "招一个DevOps工程师，要会K8s和CI/CD，能搭建自动化部署流程",
+        "city": "成都",
+        "level": "中级",
+        "department": {
+          "name": "基础设施部",
+          "mission": "保障系统稳定性和开发效率",
+          "team": "2名运维 + 1名DBA"
+        },
+        "business": {
+          "stage": "B轮",
+          "industry": "金融科技",
+          "product": "支付系统"
+        }
+      },
+      "expected_output": {
+        "must_contain": ["DevOps", "K8s", "CI/CD", "自动化"],
+        "must_not_contain": [],
+        "quality_threshold": 65,
+        "structure_required": ["title", "responsibilities", "requirements"]
+      },
+      "metadata": {
+        "scenario": "基础设施岗",
+        "difficulty": "medium",
+        "tags": ["DevOps", "K8s", "CI/CD"]
+      }
+    },
+    {
+      "id": "scenario-09",
+      "input": {
+        "description": "招一个数据分析师，要会SQL和Python，能做用户行为分析",
+        "city": "广州",
+        "level": "初级",
+        "department": {
+          "name": "数据部",
+          "mission": "用数据驱动业务决策",
+          "team": "1名数据分析师"
+        },
+        "business": {
+          "stage": "A轮",
+          "industry": "教育",
+          "product": "在线教育平台"
+        }
+      },
+      "expected_output": {
+        "must_contain": ["数据分析", "SQL", "Python", "用户行为"],
+        "must_not_contain": [],
+        "quality_threshold": 60,
+        "structure_required": ["title", "responsibilities", "requirements"]
+      },
+      "metadata": {
+        "scenario": "数据岗位",
+        "difficulty": "easy",
+        "tags": ["数据分析", "SQL", "Python"]
+      }
+    },
+    {
+      "id": "scenario-10",
+      "input": {
+        "description": "招一个全栈工程师，要前后端都能做，独立负责一个小项目",
+        "city": "杭州",
+        "level": "中级",
+        "department": {
+          "name": "创新业务部",
+          "mission": "探索和验证新业务方向",
+          "team": "1名产品经理 + 1名设计师"
+        },
+        "business": {
+          "stage": "天使轮",
+          "industry": "SaaS",
+          "product": "内部工具平台"
+        }
+      },
+      "expected_output": {
+        "must_contain": ["全栈", "前端", "后端", "独立"],
+        "must_not_contain": [],
+        "quality_threshold": 65,
+        "structure_required": ["title", "responsibilities", "requirements"]
+      },
+      "metadata": {
+        "scenario": "全栈岗位",
+        "difficulty": "medium",
+        "tags": ["全栈", "独立负责", "创业"]
+      }
+    }
+  ]
+}
