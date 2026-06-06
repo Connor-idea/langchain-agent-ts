@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-06-06T20:25:56.285Z",
+  "testCase": {
+    "role": "前端开发工程师",
+    "city": "上海",
+    "level": "中级",
+    "description": "招一个前端开发，做我们的公寓管理系统后台",
+    "context": "A轮 PropTech 公司，研发部，3名后端 + 1名前端",
+    "marketContext": "上海前端开发薪资中位数 25K，人才紧缺，React/Vue 热门"
+  },
+  "results": [
+    {
+      "version": "v1",
+      "description": "基础版 - 直接指令",
+      "score": 115,
+      "passed": true,
+      "charCount": 2178,
+      "duration": 28569
+    },
+    {
+      "version": "v3",
+      "description": "Chain-of-Thought - 分步推理",
+      "score": 113,
+      "passed": true,
+      "charCount": 2390,
+      "duration": 54589
+    },
+    {
+      "version": "v2",
+      "description": "结构化版 - 明确格式",
+      "score": 108,
+      "passed": true,
+      "charCount": 1635,
+      "duration": 29346
+    },
+    {
+      "version": "v4",
+      "description": "竞品对标 - 超越市场",
+      "score": 102,
+      "passed": true,
+      "charCount": 2996,
+      "duration": 44939
+    }
+  ],
+  "winner": "v1"
+}
