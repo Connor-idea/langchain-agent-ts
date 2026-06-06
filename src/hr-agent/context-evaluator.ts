@@ -281,40 +281,49 @@ function evaluateJobDimension(req?: Record<string, any>): DimensionScore {
 
 function evaluateMarketDimension(req?: Record<string, any>): DimensionScore {
   const checks: CheckResult[] = [];
+  const reqData = req || {};
+
+  // 检查是否通过 evaluator-integration 注入了市场数据
+  const hasMarketData = !!reqData.marketData;
+  const hasSalaryRange = !!reqData.salaryRange || !!reqData.marketBenchmark;
+  const hasTalentSupply = !!reqData.talentSupply;
+  const hasCompetitorAnalysis = !!reqData.competitorAnalysis;
+  const hasRecruitmentCycle = !!reqData.recruitmentCycle;
+  const hasHotSkills = Array.isArray(reqData.hotSkills) && reqData.hotSkills.length > 0;
 
   checks.push({
     item: "市场薪酬",
-    passed: false,
-    score: 0,
-    detail: "缺失：这个级别的市场薪酬数据（25/50/75 分位）",
+    passed: hasSalaryRange,
+    score: hasSalaryRange ? 2 : 0,
+    detail: reqData.salaryRange || (hasMarketData ? "已通过市场模块获取" : "缺失：这个级别的市场薪酬数据（25/50/75 分位）"),
   });
 
   checks.push({
     item: "人才供给",
-    passed: false,
-    score: 0,
-    detail: "缺失：这类人才在市场上的供给情况",
+    passed: hasTalentSupply,
+    score: hasTalentSupply ? 2 : 0,
+    detail: reqData.talentSupply || (hasMarketData ? "已通过市场模块获取" : "缺失：这类人才在市场上的供给情况"),
   });
 
   checks.push({
     item: "竞品 JD",
-    passed: false,
-    score: 0,
-    detail: "缺失：竞争对手怎么写类似岗位的 JD",
+    passed: hasCompetitorAnalysis,
+    score: hasCompetitorAnalysis ? 2 : 0,
+    detail: hasCompetitorAnalysis ? "已通过市场模块获取" : "缺失：竞争对手怎么写类似岗位的 JD",
   });
 
   checks.push({
     item: "招聘周期",
-    passed: false,
-    score: 0,
-    detail: "缺失：这类岗位平均多久能招到",
+    passed: hasRecruitmentCycle,
+    score: hasRecruitmentCycle ? 2 : 0,
+    detail: reqData.recruitmentCycle || (hasMarketData ? "已通过市场模块获取" : "缺失：这类岗位平均多久能招到"),
   });
 
   checks.push({
     item: "热门技能",
-    passed: false,
-    score: 0,
-    detail: "缺失：当前市场上最抢手的技能趋势",
+    passed: hasHotSkills,
+    score: hasHotSkills ? 1 : 0,
+    detail: hasHotSkills ? reqData.hotSkills.join("、") : "缺失：当前市场上最抢手的技能趋势",
   });
 
   const actualScore = checks.reduce((s, c) => s + c.score, 0);
@@ -333,33 +342,41 @@ function evaluateMarketDimension(req?: Record<string, any>): DimensionScore {
 
 function evaluateCandidateDimension(req?: Record<string, any>, biz?: Record<string, any>): DimensionScore {
   const checks: CheckResult[] = [];
+  const reqData = req || {};
+
+  // 检查是否通过 evaluator-integration 注入了候选人数据
+  const hasCandidatePersona = !!reqData.candidatePersona;
+  const hasTargetBackground = !!reqData.targetCandidateBackground;
+  const hasMotivation = !!reqData.candidateMotivation;
+  const hasDecisionFactors = !!reqData.candidateDecisionFactors;
+  const hasChannels = Array.isArray(reqData.candidateChannels) && reqData.candidateChannels.length > 0;
 
   checks.push({
     item: "目标候选人画像",
-    passed: false,
-    score: 0,
-    detail: "缺失：理想候选人现在在哪里工作、什么背景",
+    passed: hasCandidatePersona || hasTargetBackground,
+    score: (hasCandidatePersona || hasTargetBackground) ? 2 : 0,
+    detail: reqData.targetCandidateBackground || (hasCandidatePersona ? "已通过画像模块生成" : "缺失：理想候选人现在在哪里工作、什么背景"),
   });
 
   checks.push({
     item: "求职动机",
-    passed: false,
-    score: 0,
-    detail: "缺失：这类人为什么想换工作",
+    passed: hasMotivation,
+    score: hasMotivation ? 2 : 0,
+    detail: reqData.candidateMotivation || (hasCandidatePersona ? "已通过画像模块生成" : "缺失：这类人为什么想换工作"),
   });
 
   checks.push({
     item: "决策因素",
-    passed: false,
-    score: 0,
-    detail: "缺失：这类人选择工作时最看重什么（薪酬/成长/文化/...）",
+    passed: hasDecisionFactors,
+    score: hasDecisionFactors ? 2 : 0,
+    detail: hasDecisionFactors ? "已通过画像模块生成" : "缺失：这类人选择工作时最看重什么（薪酬/成长/文化/...）",
   });
 
   checks.push({
     item: "信息渠道",
-    passed: false,
-    score: 0,
-    detail: "缺失：这类人在哪里看 JD（BOSS/猎聘/脉脉/...）",
+    passed: hasChannels,
+    score: hasChannels ? 1 : 0,
+    detail: hasChannels ? reqData.candidateChannels.join("、") : "缺失：这类人在哪里看 JD（BOSS/猎聘/脉脉/...）",
   });
 
   const actualScore = checks.reduce((s, c) => s + c.score, 0);

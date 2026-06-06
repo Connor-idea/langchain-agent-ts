@@ -40,6 +40,19 @@ import {
   type InterviewQuestion,
   type InterviewSession,
 } from "./needs-interview.js";
+import {
+  generateCandidatePersonas,
+  formatPersonasForPrompt,
+  extractHiringInsights,
+  type CandidatePersona,
+  type PersonaInput,
+} from "./candidate-persona.js";
+import {
+  evaluateEnhancedContext,
+  evaluateJDQuality,
+  formatQualityReport,
+  type JDQualityScore,
+} from "./evaluator-integration.js";
 
 // ========== 类型 ==========
 
@@ -68,8 +81,20 @@ export interface PipelineInput {
 export interface PipelineResult {
   /** 上下文评估 */
   evaluation: ContextEvaluation;
+  /** 增强评估（含市场+候选人维度） */
+  enhancedEvaluation?: ContextEvaluation;
   /** 市场情报 */
   market?: MarketIntelligence;
+  /** 候选人画像 */
+  personas?: CandidatePersona[];
+  /** 招聘洞察 */
+  hiringInsights?: {
+    targetPersona: string;
+    salaryStrategy: string;
+    channelStrategy: string;
+    pitchPoints: string[];
+    avoidPoints: string[];
+  };
   /** 访谈问题（如果需要访谈） */
   interviewQuestions?: InterviewQuestion[];
   /** 结构化需求（如果有访谈结果） */
@@ -157,8 +182,11 @@ export class HRPipeline {
 
       const interviewInput: InterviewInput = {
         rawDescription: input.rawDescription,
-        department: input.department,
-        business: input.business,
+        knownInfo: {
+          title: role,
+          department: input.department?.name,
+          industry: input.business?.industry,
+        },
       };
 
       // 生成问题（注入市场参考）
@@ -192,6 +220,60 @@ export class HRPipeline {
       );
     }
 
+    // ========== Step 4: 候选人画像 ==========
+    console.log("\n👤 Step 4: 候选人画像生成...");
+    let personas: CandidatePersona[] | undefined;
+    let hiringInsights: PipelineResult["hiringInsights"];
+
+    try {
+      const personaInput: PersonaInput = {
+        role,
+        city,
+        level,
+        industry: input.business?.industry || input.department?.industry,
+        department: input.department,
+        business: input.business,
+        market,
+      };
+
+      personas = await generateCandidatePersonas(personaInput, true);
+      console.log(`✅ 生成 ${personas.length} 种候选人画像`);
+      for (const p of personas) {
+        console.log(`   - ${p.name} (${p.type}): ${p.background.currentRole}`);
+      }
+
+      // 提取招聘洞察
+      hiringInsights = extractHiringInsights(personas);
+      recommendations.push(`👤 目标候选人: ${hiringInsights.targetPersona}`);
+      recommendations.push(`💰 薪资策略: ${hiringInsights.salaryStrategy}`);
+      recommendations.push(`📢 触达渠道: ${hiringInsights.channelStrategy}`);
+    } catch (err) {
+      console.log("⚠️ 画像生成失败:", (err as Error).message);
+    }
+
+    // ========== Step 5: 增强评估 ==========
+    console.log("\n📊 Step 5: 增强评估（市场+候选人维度）...");
+    let enhancedEvaluation: ContextEvaluation | undefined;
+
+    try {
+      const enhanced = evaluateEnhancedContext({
+        requirement: { description: input.rawDescription },
+        department: input.department,
+        business: input.business,
+        market,
+        personas,
+      });
+
+      enhancedEvaluation = enhanced.evaluation;
+      const basePct = Math.round(evaluation.completeness * 100);
+      const enhancedPct = Math.round(enhancedEvaluation.completeness * 100);
+      console.log(`✅ 完整度提升: ${basePct}% → ${enhancedPct}% (+${Math.round(enhanced.improvement * 100)}%)`);
+      console.log(`   市场维度: ${enhanced.marketFilled ? "已填充" : "未填充"}`);
+      console.log(`   候选人维度: ${enhanced.personaFilled ? "已填充" : "未填充"}`);
+    } catch (err) {
+      console.log("⚠️ 增强评估失败:", (err as Error).message);
+    }
+
     // ========== 汇总建议 ==========
     // 评估建议
     for (const r of evaluation.recommendations) {
@@ -210,7 +292,10 @@ export class HRPipeline {
 
     return {
       evaluation,
+      enhancedEvaluation,
       market,
+      personas,
+      hiringInsights,
       interviewQuestions,
       structuredNeed,
       recommendations,
@@ -393,9 +478,38 @@ export function formatPipelineResult(result: PipelineResult): string {
     lines.push("");
   }
 
+  // 候选人画像
+  if (result.personas && result.personas.length > 0) {
+    lines.push("## 3. 候选人画像");
+    for (const p of result.personas) {
+      lines.push(`- **${p.name}** (${p.type}): ${p.background.currentRole}，${p.background.experience}`);
+      lines.push(`  核心技能: ${p.skills.core.join("、")}`);
+      lines.push(`  主要动机: ${p.motivation.primary}`);
+    }
+    lines.push("");
+  }
+
+  // 招聘洞察
+  if (result.hiringInsights) {
+    lines.push("## 4. 招聘洞察");
+    lines.push(`- 目标画像: ${result.hiringInsights.targetPersona}`);
+    lines.push(`- 薪资策略: ${result.hiringInsights.salaryStrategy}`);
+    lines.push(`- 触达渠道: ${result.hiringInsights.channelStrategy}`);
+    lines.push("");
+  }
+
+  // 增强评估
+  if (result.enhancedEvaluation) {
+    const basePct = Math.round(result.evaluation.completeness * 100);
+    const enhancedPct = Math.round(result.enhancedEvaluation.completeness * 100);
+    lines.push("## 5. 增强评估");
+    lines.push(`- 完整度提升: ${basePct}% → ${enhancedPct}%`);
+    lines.push("");
+  }
+
   // 访谈问题
   if (result.interviewQuestions && result.interviewQuestions.length > 0) {
-    lines.push("## 3. 访谈问题");
+    lines.push("## 6. 访谈问题");
     for (const q of result.interviewQuestions.slice(0, 5)) {
       lines.push(`- [${q.priority}] ${q.question.substring(0, 60)}...`);
     }
