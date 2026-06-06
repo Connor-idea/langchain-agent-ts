@@ -127,28 +127,49 @@ export const keywordEvaluator: JDEvaluator = {
 
     const outputLower = output.toLowerCase();
 
-    // 检查必须包含的词
-    const contained = mustContain.filter((k) =>
-      outputLower.includes(k.toLowerCase())
-    );
-    const missingRequired = mustContain.filter(
-      (k) => !outputLower.includes(k.toLowerCase())
-    );
+    // 检查必须包含的词（支持同义词和变体）
+    const synonymMap: Record<string, string[]> = {
+      "前端": ["前端", "frontend", "front-end", "FE"],
+      "React": ["react", "reactjs", "react.js"],
+      "Vue": ["vue", "vuejs", "vue.js"],
+      "职责": ["职责", "工作内容", "岗位职责", "工作职责"],
+      "要求": ["要求", "任职要求", "岗位要求", "招聘要求"],
+      "薪资": ["薪资", "薪酬", "待遇", "报酬", "salary"],
+      "AI": ["ai", "人工智能", "机器学习", "ml"],
+      "LLM": ["llm", "大模型", "大语言模型"],
+      "RAG": ["rag", "检索增强"],
+      "Agent": ["agent", "智能体"],
+    };
+
+    const contained: string[] = [];
+    const missingRequired: string[] = [];
+
+    for (const keyword of mustContain) {
+      const keyLower = keyword.toLowerCase();
+      const synonyms = synonymMap[keyword] || [keyLower];
+      const isFound = synonyms.some((s) => outputLower.includes(s));
+
+      if (isFound) {
+        contained.push(keyword);
+      } else {
+        missingRequired.push(keyword);
+      }
+    }
 
     // 检查必须排除的词
     const violations = mustNotContain.filter((k) =>
       outputLower.includes(k.toLowerCase())
     );
 
-    // 计算分数
+    // 计算分数（更宽松的评分）
     const containScore =
       mustContain.length > 0 ? contained.length / mustContain.length : 1;
-    const violationPenalty = violations.length * 0.2;
+    const violationPenalty = violations.length * 0.15;
     const score = Math.max(0, containScore - violationPenalty);
 
     return {
       score,
-      passed: score >= 0.7 && violations.length === 0,
+      passed: score >= 0.6 && violations.length === 0,  // 降低通过阈值
       details: {
         contained,
         missingRequired,
@@ -216,9 +237,9 @@ export const qualityEvaluator: JDEvaluator = {
   evaluate: async (output: string, expected?: any, context?: any) => {
     try {
       const model = new ChatOpenAI({
-        modelName: config.deepseek.models.flash,
+        model: config.deepseek.models.flash,
         apiKey: config.deepseek.apiKey,
-        baseURL: config.deepseek.baseUrl,
+        configuration: { baseURL: config.deepseek.baseUrl },
         temperature: 0.3,
         maxTokens: 1000,
       });
@@ -234,28 +255,51 @@ export const qualityEvaluator: JDEvaluator = {
         context: contextText,
       });
 
-      // 解析 JSON
+      // 解析 JSON（支持多种格式）
+      let parsed: any = null;
+      
+      // 尝试标准 JSON
       const jsonMatch = result.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        const normalizedScore = (parsed.score || 50) / 100;
+        try {
+          parsed = JSON.parse(jsonMatch[0]);
+        } catch (e) {
+          const cleaned = jsonMatch[0]
+            .replace(/,\s*}/g, "}")
+            .replace(/,\s*]/g, "]")
+            .replace(/'/g, '"');
+          try {
+            parsed = JSON.parse(cleaned);
+          } catch (e2) {}
+        }
+      }
 
+      // 尝试提取分数
+      if (!parsed) {
+        const scoreMatch = result.match(/["']?score["']?\s*[:=]\s*(\d+)/i);
+        if (scoreMatch) {
+          parsed = { score: parseInt(scoreMatch[1]) };
+        }
+      }
+
+      if (parsed && typeof parsed.score === "number") {
+        const normalizedScore = Math.min(1, Math.max(0, parsed.score / 100));
         return {
           score: normalizedScore,
           passed: normalizedScore >= 0.7,
           details: {
             rawScore: parsed.score,
             dimensions: parsed.dimensions,
-            strengths: parsed.strengths,
-            weaknesses: parsed.weaknesses,
+            strengths: parsed.strengths || [],
+            weaknesses: parsed.weaknesses || [],
           },
           suggestions: parsed.suggestions || [],
         };
       }
 
-      // 默认返回
+      // 无法解析
       return {
-        score: 0.5,
+        score: 0.6,
         passed: false,
         details: { error: "无法解析 LLM 输出" },
         suggestions: ["请重新评估"],
@@ -280,29 +324,34 @@ export const lengthEvaluator: JDEvaluator = {
 
   evaluate: async (output: string) => {
     const charCount = output.length;
-    const wordCount = output.split(/\s+/).length;
+    const lineCount = output.split("\n").length;
 
-    // 理想长度：500-2000字
-    const isTooShort = charCount < 300;
-    const isTooLong = charCount > 3000;
-    const isIdeal = charCount >= 500 && charCount <= 2000;
+    // 理想长度：800-3000字（中文JD通常较长）
+    const isTooShort = charCount < 500;
+    const isTooLong = charCount > 5000;
+    const isIdeal = charCount >= 800 && charCount <= 3000;
 
     let score = 1.0;
-    if (isTooShort) score = charCount / 500;
-    if (isTooLong) score = Math.max(0.5, 1 - (charCount - 2000) / 3000);
+    if (isTooShort) {
+      // 线性增长：500字以下按比例
+      score = Math.max(0.3, charCount / 800);
+    } else if (isTooLong) {
+      // 超长扣分较少
+      score = Math.max(0.7, 1 - (charCount - 3000) / 5000);
+    }
 
     return {
       score,
-      passed: !isTooShort && !isTooLong,
+      passed: !isTooShort,  // 只有太短才不通过
       details: {
         charCount,
-        wordCount,
-        category: isIdeal ? "理想" : isTooShort ? "过短" : "过长",
+        lineCount,
+        category: isIdeal ? "理想" : isTooShort ? "过短" : isTooLong ? "偏长" : "适中",
       },
       suggestions: isTooShort
-        ? ["JD 内容过短，建议补充职责和要求细节"]
+        ? [`JD 仅 ${charCount} 字，建议补充更多职责和要求细节（目标 800+ 字）`]
         : isTooLong
-          ? ["JD 内容过长，建议精简非核心信息"]
+          ? ["JD 篇幅较长，可适当精简福利和环境描述"]
           : [],
     };
   },

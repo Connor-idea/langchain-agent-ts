@@ -337,9 +337,9 @@ export async function generateCandidatePersonas(
 
   try {
     const model = new ChatOpenAI({
-      modelName: config.deepseek.models.pro,
+      model: config.deepseek.models.pro,
       apiKey: config.deepseek.apiKey,
-      baseURL: config.deepseek.baseUrl,
+      configuration: { baseURL: config.deepseek.baseUrl },
       temperature: 0.8,
       maxTokens: 3000,
     });

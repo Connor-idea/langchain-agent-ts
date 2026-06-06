@@ -168,10 +168,10 @@ export async function evaluateJDQuality(
   market?: MarketIntelligence
 ): Promise<JDQualityScore> {
   const model = new ChatOpenAI({
-    modelName: config.deepseek.models.flash, // 用快速模型
+    model: config.deepseek.models.flash,
     apiKey: config.deepseek.apiKey,
-    baseURL: config.deepseek.baseUrl,
-    temperature: 0.3, // 低温度，评分稳定
+    configuration: { baseURL: config.deepseek.baseUrl },
+    temperature: 0.3,
     maxTokens: 1000,
   });
 

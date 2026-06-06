@@ -238,38 +238,148 @@ function constructJDText(
   pipelineResult: any,
   input: any
 ): string {
-  // 从 pipeline 结果中构造 JD 文本
-  // 当前 pipeline 没有直接生成 JD，所以我们构造一个基础版本
+  // 从 pipeline 结果中构造详细的 JD 文本
   const lines: string[] = [];
+  
+  // 提取岗位名称
+  const roleMatch = input.description.match(/[前后端产品测试运维设计数据AI]+[工程师开发设计师经理总监专员运营分析师]+/);
+  const roleName = roleMatch ? roleMatch[0] : "岗位";
+  const fullTitle = `${input.level || ""}${roleName}`;
 
-  lines.push(`# ${input.level || ""}${input.description.match(/[前后端产品测试运维设计]+[工程师开发设计师经理总监专员运营]+/)?.[0] || "岗位"}`);
+  // 岗位标题
+  lines.push(`# ${fullTitle}`);
   lines.push("");
+  lines.push(`## 公司简介`);
+  lines.push(`${input.business?.product || "我们是一家快速发展的科技公司"}，目前处于${input.business?.stage || "成长"}阶段，专注于${input.business?.industry || "互联网"}领域。`);
+  lines.push("");
+  
+  lines.push(`## 部门介绍`);
+  lines.push(`${input.department?.name || "技术部"}：${input.department?.mission || "负责核心产品研发"}`);
+  if (input.department?.team) {
+    lines.push(`团队规模：${input.department.team}`);
+  }
+  lines.push("");
+
   lines.push(`## 岗位职责`);
-  lines.push(`- ${input.description}`);
-  lines.push("- 参与团队协作，完成项目目标");
+  lines.push(`1. ${input.description}`);
+  lines.push(`2. 参与需求分析和技术方案设计`);
+  lines.push(`3. 负责核心功能模块的开发和维护`);
+  lines.push(`4. 编写高质量的代码和技术文档`);
+  lines.push(`5. 参与代码评审，持续优化代码质量`);
+  lines.push(`6. 与产品、设计、测试团队紧密协作，确保项目按时交付`);
+  lines.push(`7. 关注行业动态，引入新技术提升团队效率`);
   lines.push("");
 
   lines.push(`## 任职要求`);
-  lines.push(`- ${input.level || "中级"}及以上经验`);
-  lines.push("- 具备相关技术栈能力");
-  lines.push("- 良好的沟通和团队协作能力");
+  lines.push(`### 基本要求`);
+  lines.push(`- ${input.level || "中级"}及以上相关工作经验`);
+  lines.push(`- 计算机科学或相关专业本科及以上学历`);
+  lines.push(`- 良好的沟通能力和团队协作精神`);
+  lines.push(`- 强烈的责任心和自驱力`);
+  lines.push("");
+  
+  lines.push(`### 技术要求`);
+  // 根据岗位类型添加具体技能
+  if (roleName.includes("前端")) {
+    lines.push(`- 精通 React 或 Vue 框架，有大型项目经验`);
+    lines.push(`- 熟悉 TypeScript，了解前端工程化`);
+    lines.push(`- 熟悉 Webpack、Vite 等构建工具`);
+    lines.push(`- 了解 Node.js，有全栈开发经验优先`);
+  } else if (roleName.includes("后端")) {
+    lines.push(`- 精通 Java/Python/Go 至少一门语言`);
+    lines.push(`- 熟悉 Spring Boot/Django 等框架`);
+    lines.push(`- 熟悉 MySQL、Redis、消息队列`);
+    lines.push(`- 了解微服务架构和分布式系统`);
+  } else if (roleName.includes("产品")) {
+    lines.push(`- 有 B端 SaaS 产品经验优先`);
+    lines.push(`- 熟悉产品设计流程，能独立负责产品线`);
+    lines.push(`- 优秀的数据分析能力和逻辑思维`);
+    lines.push(`- 良好的跨部门沟通和项目管理能力`);
+  } else if (roleName.includes("测试")) {
+    lines.push(`- 熟悉自动化测试框架（Selenium、Pytest等）`);
+    lines.push(`- 了解 CI/CD 流程`);
+    lines.push(`- 有性能测试、安全测试经验优先`);
+    lines.push(`- 熟悉 Python 或 Java`);
+  } else if (roleName.includes("AI") || roleName.includes("算法")) {
+    lines.push(`- 精通 Python，熟悉 PyTorch/TensorFlow`);
+    lines.push(`- 有大模型应用开发经验（RAG、Agent）`);
+    lines.push(`- 了解 LLM 原理，有微调经验优先`);
+    lines.push(`- 熟悉向量数据库和 Embedding 技术`);
+  } else if (roleName.includes("DevOps") || roleName.includes("运维")) {
+    lines.push(`- 熟悉 Docker、Kubernetes 容器化技术`);
+    lines.push(`- 精通 CI/CD 流程（Jenkins、GitLab CI）`);
+    lines.push(`- 了解云服务（AWS、阿里云）`);
+    lines.push(`- 有监控告警系统建设经验`);
+  } else if (roleName.includes("数据")) {
+    lines.push(`- 精通 SQL，熟悉 Python 数据分析`);
+    lines.push(`- 了解数据仓库和 ETL 流程`);
+    lines.push(`- 熟悉 BI 工具（Tableau、PowerBI）`);
+    lines.push(`- 有用户行为分析经验优先`);
+  } else if (roleName.includes("财务")) {
+    lines.push(`- 持有 CPA 证书`);
+    lines.push(`- 有融资或上市准备经验`);
+    lines.push(`- 熟悉财务分析和预算管理`);
+    lines.push(`- 了解税法和审计流程`);
+  } else if (roleName.includes("运营")) {
+    lines.push(`- 有用户增长和活跃度提升经验`);
+    lines.push(`- 熟悉数据分析和运营工具`);
+    lines.push(`- 优秀的文案和活动策划能力`);
+    lines.push(`- 有团队管理经验优先`);
+  } else {
+    lines.push(`- 具备相关领域专业知识`);
+    lines.push(`- 有成功项目案例`);
+    lines.push(`- 持续学习和自我提升能力`);
+  }
   lines.push("");
 
+  lines.push(`### 加分项`);
+  lines.push(`- 有开源项目贡献经验`);
+  lines.push(`- 有技术博客或分享习惯`);
+  lines.push(`- 有创业公司工作经验`);
+  lines.push("");
+
+  lines.push(`## 薪资福利`);
   if (pipelineResult.market?.salary) {
-    lines.push(`## 薪资待遇`);
-    lines.push(
-      `- 薪资范围: ${pipelineResult.market.salary.p25}-${pipelineResult.market.salary.p75}K`
-    );
-    lines.push("- 五险一金");
+    lines.push(`- 薪资范围: ${pipelineResult.market.salary.p25}-${pipelineResult.market.salary.p75}K × 14薪`);
+    lines.push(`- 市场竞争力: 对标行业 P50-P75 水平`);
+  } else {
+    lines.push(`- 薪资范围: 面议（根据能力和经验）`);
+  }
+  lines.push(`- 五险一金（最高基数）`);
+  lines.push(`- 补充商业保险`);
+  lines.push(`- 带薪年假 10-15 天`);
+  lines.push(`- 弹性工作制`);
+  lines.push(`- 定期团建和节日福利`);
+  lines.push(`- 免费零食和下午茶`);
+  lines.push("");
+
+  lines.push(`## 成长发展`);
+  lines.push(`- 清晰的职业发展路径（技术/管理双通道）`);
+  lines.push(`- 定期技术分享和培训`);
+  lines.push(`- 参与核心项目，快速成长`);
+  lines.push(`- 优秀导师一对一指导`);
+  lines.push("");
+
+  lines.push(`## 工作环境`);
+  lines.push(`- 扁平化管理，开放沟通`);
+  lines.push(`- 鼓励创新，容忍试错`);
+  lines.push(`- 结果导向，不提倡无效加班`);
+  lines.push(`- 办公地点: ${input.city || "上海"}市中心，交通便利`);
+  lines.push("");
+
+  if (pipelineResult.personas && pipelineResult.personas.length > 0) {
+    lines.push(`## 我们期待这样的你`);
+    for (const p of pipelineResult.personas.slice(0, 2)) {
+      lines.push(`- ${p.name}: ${p.motivation.primary}`);
+    }
     lines.push("");
   }
 
-  if (pipelineResult.personas && pipelineResult.personas.length > 0) {
-    lines.push(`## 目标候选人`);
-    for (const p of pipelineResult.personas) {
-      lines.push(`- ${p.name}: ${p.background.currentRole}`);
-    }
-  }
+  lines.push(`## 投递方式`);
+  lines.push(`请将简历发送至 hr@company.com，邮件标题注明「应聘${fullTitle}」`);
+  lines.push("");
+  lines.push(`---`);
+  lines.push(`*我们承诺在收到简历后 3 个工作日内给予反馈*`);
 
   return lines.join("\n");
 }

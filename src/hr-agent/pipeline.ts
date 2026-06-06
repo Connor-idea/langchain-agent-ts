@@ -116,9 +116,9 @@ export class HRPipeline {
 
   constructor() {
     this.model = new ChatOpenAI({
-      modelName: config.deepseek.models.pro,
+      model: config.deepseek.models.pro,
       apiKey: config.deepseek.apiKey,
-      baseURL: config.deepseek.baseUrl,
+      configuration: { baseURL: config.deepseek.baseUrl },
       temperature: 0.7,
       maxTokens: 2000,
     });
