@@ -1,0 +1,29 @@
+{
+  "name": "langchain-agent-ts",
+  "version": "1.0.0",
+  "description": "LangChain.js Agent 开发 + LangSmith 测试",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "tsx src/tests/run-all.ts",
+    "test:basic": "tsx src/tests/01-basic-chain.ts",
+    "test:tools": "tsx src/tests/02-tool-calling.ts",
+    "test:agent": "tsx src/tests/03-agent.ts",
+    "test:eval": "tsx src/tests/04-evaluation.ts",
+    "test:trace": "tsx src/tests/05-tracing.ts",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@langchain/core": "^0.3.0",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/langgraph": "^0.2.0",
+    "langsmith": "^0.2.0",
+    "zod": "^3.23.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0",
+    "@types/node": "^22.0.0"
+  }
+}
