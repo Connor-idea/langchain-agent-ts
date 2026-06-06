@@ -152,10 +152,22 @@ export interface JDResultV3 {
 function createLLM(temp = 0.7) {
   return new ChatOpenAI({
     apiKey: config.deepseek.apiKey,
-    model: config.deepseek.model,
+    model: config.deepseek.models.flash,
     temperature: temp,
     configuration: { baseURL: config.deepseek.baseUrl },
   });
+}
+
+/** Pro 模型：深度推理，用于诊断/生成/修订 */
+function createProLLM(temp = 0.7, reasoningEffort: "low" | "medium" | "high" = "medium") {
+  const llm = new ChatOpenAI({
+    apiKey: config.deepseek.apiKey,
+    model: config.deepseek.models.pro,
+    temperature: temp,
+    maxTokens: 4000,
+    configuration: { baseURL: config.deepseek.baseUrl },
+  });
+  return llm.bind({ reasoning_effort: reasoningEffort } as any);
 }
 
 // ========== 行业基准 ==========
@@ -544,8 +556,9 @@ export async function generateJDV3(
 ): Promise<JDResultV3> {
   const { maxIterations = 2, onProgress } = options;
   const log = onProgress || (() => {});
-  const llm = createLLM(0.7);
-  const llmLow = createLLM(0.2);
+  // 双模型策略：Pro 做诊断/生成/修订，Flash 做审查/结构化
+  const llmPro = createProLLM(0.7, "high");   // 深度推理
+  const llmFlash = createLLM(0.3);             // 快速审查
   const startTime = Date.now();
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
@@ -560,7 +573,7 @@ export async function generateJDV3(
   // Step 1: 组织诊断
   log("🔍 Step 1: 组织诊断...");
   const t1 = Date.now();
-  const diagChain = DIAGNOSIS_PROMPT.pipe(llm).pipe(new StringOutputParser());
+  const diagChain = DIAGNOSIS_PROMPT.pipe(llmPro).pipe(new StringOutputParser());
   const diagnosis = await diagChain.invoke({
     department_name: input.department.name,
     department_mission: input.department.mission,
@@ -592,7 +605,7 @@ export async function generateJDV3(
   // Step 2: 生成 JD（结构化）
   log("📝 Step 2: 生成结构化 JD...");
   const t2 = Date.now();
-  const jdChain = JD_GENERATION_PROMPT.pipe(llm).pipe(new StringOutputParser());
+  const jdChain = JD_GENERATION_PROMPT.pipe(llmPro).pipe(new StringOutputParser());
   let currentJDText = await jdChain.invoke({
     diagnosis,
     json_schema: JDSchema.description || "JD JSON Schema",
@@ -749,7 +762,7 @@ export async function generateJDV3(
       const prompt = createReviewPrompt(role, {
         bossExpectation: input.business.bossExpectation,
       });
-      const chain = prompt.pipe(llmLow).pipe(new StringOutputParser());
+      const chain = prompt.pipe(llmFlash).pipe(new StringOutputParser());
       const raw = await chain.invoke({ jd: JSON.stringify(currentJD, null, 2) });
       return parseFeedback(raw, role);
     });
@@ -772,7 +785,7 @@ export async function generateJDV3(
     // 修订
     log("   ✏️ 根据反馈修订...");
     const t4 = Date.now();
-    const reviseChain = REVISE_PROMPT.pipe(llm).pipe(new StringOutputParser());
+    const reviseChain = REVISE_PROMPT.pipe(llmPro).pipe(new StringOutputParser());
     const revisedText = await reviseChain.invoke({
       jd: JSON.stringify(currentJD, null, 2),
       diagnosis,
