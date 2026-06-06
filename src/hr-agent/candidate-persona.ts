@@ -374,18 +374,27 @@ export async function generateCandidatePersonas(
       market_text: marketText,
     });
 
-    // 解析 JSON
+    // 解析 JSON（增强版）
     const jsonMatch = result.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
-      const llmPersonas = JSON.parse(jsonMatch[0]) as CandidatePersona[];
-      // 合并：LLM 画像 + 规则引擎画像（去重）
-      const merged = [...llmPersonas];
-      for (const rp of rulePersonas) {
-        if (!merged.find((lp) => lp.type === rp.type)) {
-          merged.push(rp);
+      try {
+        let jsonStr = jsonMatch[0]
+          .replace(/[\x00-\x1F\x7F]/g, "")
+          .replace(/,\s*([\]}])/g, "$1")
+          .replace(/\n/g, " ")
+          .replace(/\s+/g, " ");
+
+        const llmPersonas = JSON.parse(jsonStr) as CandidatePersona[];
+        const merged = [...llmPersonas];
+        for (const rp of rulePersonas) {
+          if (!merged.find((lp) => lp.type === rp.type)) {
+            merged.push(rp);
+          }
         }
+        return merged;
+      } catch (parseErr) {
+        console.log("⚠️ JSON 解析失败，使用规则引擎:", (parseErr as Error).message);
       }
-      return merged;
     }
 
     return rulePersonas;
