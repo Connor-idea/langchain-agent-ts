@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HR Agent 智能招聘助手</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+    
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+    
+    .input-section {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+    
+    .input-section h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+    }
+    
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 16px;
+      resize: vertical;
+      transition: border-color 0.3s;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .examples {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .example-btn {
+      padding: 8px 16px;
+      background: #f0f0f0;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    
+    .example-btn:hover {
+      background: #667eea;
+      color: white;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #667eea;
+    }
+    
+    .loading .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .result-section {
+      display: none;
+    }
+    
+    .result-card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+    
+    .result-card h2 {
+      color: #333;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #f0f0f0;
+      font-size: 1.3rem;
+    }
+    
+    .tag {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #667eea;
+      color: white;
+      border-radius: 20px;
+      font-size: 14px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .tag.green { background: #10b981; }
+    .tag.orange { background: #f59e0b; }
+    .tag.red { background: #ef4444; }
+    
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .info-item {
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    
+    .info-item label {
+      display: block;
+      color: #666;
+      font-size: 12px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    
+    .info-item value {
+      display: block;
+      color: #333;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .jd-content {
+      white-space: pre-wrap;
+      line-height: 1.8;
+      color: #333;
+    }
+    
+    .jd-content h3 {
+      color: #667eea;
+      margin: 20px 0 10px;
+      font-size: 1.1rem;
+    }
+    
+    .advice-list {
+      list-style: none;
+    }
+    
+    .advice-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: flex-start;
+    }
+    
+    .advice-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .advice-icon {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+    
+    .salary-chart {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    
+    .salary-bar {
+      flex: 1;
+      height: 30px;
+      background: linear-gradient(90deg, #10b981, #667eea, #764ba2);
+      border-radius: 15px;
+      position: relative;
+      margin: 0 15px;
+    }
+    
+    .salary-label {
+      font-weight: 600;
+      color: #333;
+      min-width: 80px;
+    }
+    
+    .salary-value {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-weight: 600;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .channel-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .channel-item {
+      padding: 10px 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .channel-stars {
+      color: #f59e0b;
+      margin-right: 8px;
+    }
+    
+    .candidate-card {
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .candidate-card h4 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    
+    .flag-list {
+      margin-top: 10px;
+    }
+    
+    .flag-item {
+      padding: 5px 0;
+      font-size: 14px;
+    }
+    
+    .flag-item.warning { color: #f59e0b; }
+    .flag-item.success { color: #10b981; }
+    
+    .interview-questions {
+      counter-reset: question;
+    }
+    
+    .interview-questions li {
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      counter-increment: question;
+    }
+    
+    .interview-questions li::before {
+      content: counter(question) ".";
+      color: #667eea;
+      font-weight: 600;
+      margin-right: 10px;
+    }
+    
+    footer {
+      text-align: center;
+      color: white;
+      padding: 20px;
+      opacity: 0.8;
+    }
+    
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.8rem;
+      }
+      
+      .input-section, .result-card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🤖 HR Agent</h1>
+      <p>智能招聘助手 - 用口语描述需求，生成专业招聘方案</p>
+    </header>
+    
+    <div class="input-section">
+      <h2>📝 描述你的招聘需求</h2>
+      <textarea id="input" placeholder="例如：招一个厨师，做扬州炒饭，会翻锅会切配就行，个体经营户，餐饮行业"></textarea>
+      
+      <div class="examples">
+        <button class="example-btn" onclick="setExample(0)">🍳 招厨师</button>
+        <button class="example-btn" onclick="setExample(1)">💻 招前端开发</button>
+        <button class="example-btn" onclick="setExample(2)">📊 招财务经理</button>
+        <button class="example-btn" onclick="setExample(3)">🎨 招UI设计师</button>
+        <button class="example-btn" onclick="setExample(4)">📢 招销售代表</button>
+      </div>
+      
+      <button class="submit-btn" id="submitBtn" onclick="analyze()">
+        🚀 开始分析
+      </button>
+    </div>
+    
+    <div id="loading" class="loading" style="display:none">
+      <div class="spinner"></div>
+      <p>AI 正在分析，请稍候...</p>
+    </div>
+    
+    <div id="result" class="result-section">
+      <!-- 需求解析 -->
+      <div class="result-card">
+        <h2>📋 需求解析</h2>
+        <div id="requirementResult"></div>
+      </div>
+      
+      <!-- 生成的 JD -->
+      <div class="result-card">
+        <h2>📄 生成的 JD</h2>
+        <div id="jdResult"></div>
+      </div>
+      
+      <!-- 招聘建议 -->
+      <div class="result-card">
+        <h2>💡 招聘建议</h2>
+        <div id="adviceResult"></div>
+      </div>
+    </div>
+    
+    <footer>
+      <p>HR Agent v2.0 - LangChain.js + DeepSeek</p>
+    </footer>
+  </div>
+  
+  <script>
+    const examples = [
+      "招一个厨师，做扬州炒饭，会翻锅会切配知道调味就行，有SOP，个体经营户，餐饮行业",
+      "招一个前端开发，做公寓管理系统后台，要会React，A轮创业公司，PropTech行业",
+      "需要一个财务经理，要有CPA证书，做过融资和上市准备，C轮消费品公司",
+      "招一个UI设计师，要有B端SaaS经验，能独立负责产品设计，互联网公司",
+      "找一个销售代表，做B端客户，要有企业软件销售经验，底薪+提成"
+    ];
+    
+    function setExample(index) {
+      document.getElementById("input").value = examples[index];
+    }
+    
+    async function analyze() {
+      const input = document.getElementById("input").value.trim();
+      
+      if (!input) {
+        alert("请输入招聘需求");
+        return;
+      }
+      
+      const submitBtn = document.getElementById("submitBtn");
+      const loading = document.getElementById("loading");
+      const result = document.getElementById("result");
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = "⏳ 分析中...";
+      loading.style.display = "block";
+      result.style.display = "none";
+      
+      try {
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+          alert("错误: " + data.error);
+          return;
+        }
+        
+        renderResult(data.data);
+        result.style.display = "block";
+        
+      } catch (error) {
+        alert("请求失败: " + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "🚀 开始分析";
+        loading.style.display = "none";
+      }
+    }
+    
+    function renderResult(data) {
+      const { requirement, jd, advice } = data;
+      
+      // 需求解析
+      document.getElementById("requirementResult").innerHTML = `
+        <div class="info-grid">
+          <div class="info-item">
+            <label>岗位</label>
+            <value>${requirement.jobTitle}</value>
+          </div>
+          <div class="info-item">
+            <label>类别</label>
+            <value>${requirement.jobCategory}</value>
+          </div>
+          <div class="info-item">
+            <label>级别</label>
+            <value>${requirement.jobLevel || "不限"}</value>
+          </div>
+          <div class="info-item">
+            <label>业务类型</label>
+            <value>${requirement.businessType}</value>
+          </div>
+          <div class="info-item">
+            <label>行业</label>
+            <value>${requirement.industry}</value>
+          </div>
+          <div class="info-item">
+            <label>地点</label>
+            <value>${requirement.location || "待定"}</value>
+          </div>
+        </div>
+        
+        ${requirement.requirements && requirement.requirements.length > 0 ? `
+          <h3>具体要求</h3>
+          <ul class="advice-list">
+            ${requirement.requirements.map(r => `<li><span class="advice-icon">•</span> ${r}</li>`).join("")}
+          </ul>
+        ` : ""}
+        
+        ${requirement.responsibilities && requirement.responsibilities.length > 0 ? `
+          <h3>工作职责</h3>
+          <ul class="advice-list">
+            ${requirement.responsibilities.map(r => `<li><span class="advice-icon">•</span> ${r}</li>`).join("")}
+          </ul>
+        ` : ""}
+      `;
+      
+      // JD
+      document.getElementById("jdResult").innerHTML = `
+        <h3>${jd.title}</h3>
+        
+        <div class="jd-content">
+          <h3>公司简介</h3>
+          <p>${jd.companyIntro}</p>
+          
+          <h3>岗位职责</h3>
+          <ol>
+            ${(jd.responsibilities || []).map(r => `<li>${r}</li>`).join("")}
+          </ol>
+          
+          <h3>任职要求</h3>
+          <ol>
+            ${(jd.requirements || []).map(r => `<li>${r}</li>`).join("")}
+          </ol>
+          
+          ${(jd.niceToHave && jd.niceToHave.length > 0) ? `
+            <h3>加分项</h3>
+            <ul>
+              ${jd.niceToHave.map(r => `<li>${r}</li>`).join("")}
+            </ul>
+          ` : ""}
+          
+          <h3>薪资福利</h3>
+          <p><strong>薪资:</strong> ${jd.salary}</p>
+          <ul>
+            ${(jd.benefits || []).map(r => `<li>${r}</li>`).join("")}
+          </ul>
+          
+          <h3>工作环境</h3>
+          <p>${jd.workEnvironment}</p>
+          
+          <h3>投递方式</h3>
+          <p>${jd.applyMethod}</p>
+        </div>
+      `;
+      
+      // 招聘建议
+      let adviceHtml = "";
+      
+      // 薪资参考
+      if (advice.salaryBenchmark && advice.salaryBenchmark.median > 0) {
+        adviceHtml += `
+          <h3>💰 薪资参考</h3>
+          <div class="salary-chart">
+            <span class="salary-label">${advice.salaryBenchmark.min}K</span>
+            <div class="salary-bar">
+              <span class="salary-value">${advice.salaryBenchmark.median}K 中位数</span>
+            </div>
+            <span class="salary-label">${advice.salaryBenchmark.max}K</span>
+          </div>
+          <p style="color: #666; font-size: 14px;">来源: ${advice.salaryBenchmark.source}</p>
+        `;
+      }
+      
+      // 渠道建议
+      if (advice.channels && advice.channels.length > 0) {
+        adviceHtml += `
+          <h3>📢 推聘渠道</h3>
+          <div class="channel-list">
+            ${advice.channels
+              .sort((a, b) => b.priority - a.priority)
+              .map(c => `
+                <div class="channel-item">
+                  <span class="channel-stars">${"⭐".repeat(c.priority)}</span>
+                  <span>${c.name}</span>
+                </div>
+              `).join("")}
+          </div>
+        `;
+      }
+      
+      // 候选人画像
+      if (advice.candidateProfile) {
+        adviceHtml += `
+          <h3>👤 候选人画像</h3>
+          <div class="candidate-card">
+            <h4>理想候选人</h4>
+            <p>${advice.candidateProfile.ideal}</p>
+          </div>
+          <div class="candidate-card">
+            <h4>现实候选人</h4>
+            <p>${advice.candidateProfile.realistic}</p>
+          </div>
+          
+          ${advice.candidateProfile.redFlags && advice.candidateProfile.redFlags.length > 0 ? `
+            <div class="flag-list">
+              <h4>⚠️ 危险信号</h4>
+              ${advice.candidateProfile.redFlags.map(f => `
+                <div class="flag-item warning">• ${f}</div>
+              `).join("")}
+            </div>
+          ` : ""}
+          
+          ${advice.candidateProfile.greenFlags && advice.candidateProfile.greenFlags.length > 0 ? `
+            <div class="flag-list">
+              <h4>✅ 积极信号</h4>
+              ${advice.candidateProfile.greenFlags.map(f => `
+                <div class="flag-item success">• ${f}</div>
+              `).join("")}
+            </div>
+          ` : ""}
+        `;
+      }
+      
+      // 面试建议
+      if (advice.interviewTips) {
+        adviceHtml += `
+          <h3>🎤 面试建议</h3>
+          <h4>推荐问题</h4>
+          <ol class="interview-questions">
+            ${(advice.interviewTips.questions || []).map(q => `<li>${q}</li>`).join("")}
+          </ol>
+          
+          <h4>评估要点</h4>
+          <ul class="advice-list">
+            ${(advice.interviewTips.evaluation || []).map(e => `<li><span class="advice-icon">•</span> ${e}</li>`).join("")}
+          </ul>
+        `;
+      }
+      
+      document.getElementById("adviceResult").innerHTML = adviceHtml;
+    }
+  </script>
+</body>
+</html>
